@@ -42,6 +42,7 @@ Regras do post:
 - Não use markdown (é texto puro para colar direto no LinkedIn).
 - Termine com uma linha convidando para ver o repositório (sem inventar link se não for fornecido).
 - Escreva tambem sobre oque foi aprendido no codigo.
+- Nao fale  focando na melhoria do arquivo README.md. ou coisas relacionadas.
 """
 
 USER_PROMPT = f"""\
