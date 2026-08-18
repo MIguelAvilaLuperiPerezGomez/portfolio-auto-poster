@@ -1,14 +1,22 @@
 name: Post no LinkedIn ao mergear PR
 
 on:
+  # Dispara em PR mergeado neste próprio repositório
   pull_request:
     types: [closed]
     branches: [main]
 
+  # Dispara quando outro repositório avisa (via repository_dispatch)
+  # que teve um PR mergeado por lá
+  repository_dispatch:
+    types: [pr-merged]
+
 jobs:
   post-to-linkedin:
-    # só roda se o PR foi de fato mergeado (não apenas fechado sem merge)
-    if: github.event.pull_request.merged == true
+    # Roda se: (a) foi um PR local de fato mergeado, OU (b) veio de outro repo via dispatch
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -23,23 +31,16 @@ jobs:
       - name: Instalar dependências
         run: pip install google-genai requests
 
-      - name: Coletar informações do PR
-        id: pr_info
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          echo "Título: $PR_TITLE"
-
       - name: Gerar texto do post com Gemini
         id: generate
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          REPO_NAME: ${{ github.repository }}
-          REPO_URL: https://github.com/${{ github.repository }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-          COMMIT_MESSAGES: ${{ github.event.pull_request.title }}
-          CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
+          REPO_NAME: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.repo_name || github.repository }}
+          REPO_URL: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.repo_url || format('https://github.com/{0}', github.repository) }}
+          PR_TITLE: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.pr_title || github.event.pull_request.title }}
+          PR_BODY: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.pr_body || github.event.pull_request.body }}
+          COMMIT_MESSAGES: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.pr_title || github.event.pull_request.title }}
+          CHANGED_FILES: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.changed_files || github.event.pull_request.changed_files }}
         run: |
           POST_TEXT=$(python generate_post.py)
           echo "post_text<<EOF" >> "$GITHUB_OUTPUT"
