@@ -34,13 +34,14 @@ desenvolvimento de software.
 
 Regras do post:
 - Tom profissional, direto, em primeira pessoa, em português do Brasil.
-- Sem emojis em excesso (no máximo 1-2, se fizer sentido).
+- Sem emojis.
 - Sem hashtags em excesso (no máximo 3, relevantes).
 - Não invente funcionalidades ou tecnologias que não estão nas informações fornecidas.
 - Foque no que foi aprendido/resolvido, não só "o que é o código".
 - Tamanho: entre 500 e 1200 caracteres.
 - Não use markdown (é texto puro para colar direto no LinkedIn).
 - Termine com uma linha convidando para ver o repositório (sem inventar link se não for fornecido).
+- Escreva tambem sobre oque foi aprendido no codigo.
 """
 
 USER_PROMPT = f"""\
