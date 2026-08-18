@@ -1,0 +1,53 @@
+name: Post no LinkedIn ao mergear PR
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  post-to-linkedin:
+    # só roda se o PR foi de fato mergeado (não apenas fechado sem merge)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install google-genai requests
+
+      - name: Coletar informações do PR
+        id: pr_info
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "Título: $PR_TITLE"
+
+      - name: Gerar texto do post com Gemini
+        id: generate
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          REPO_NAME: ${{ github.repository }}
+          REPO_URL: https://github.com/${{ github.repository }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          COMMIT_MESSAGES: ${{ github.event.pull_request.title }}
+          CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
+        run: |
+          POST_TEXT=$(python generate_post.py)
+          echo "post_text<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$POST_TEXT" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Publicar no LinkedIn
+        env:
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          POST_TEXT: ${{ steps.generate.outputs.post_text }}
+        run: python post_linkedin.py
