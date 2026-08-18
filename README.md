@@ -68,3 +68,4 @@ python generate_post.py
 
 Isso imprime o texto gerado sem publicar nada — bom para calibrar o prompt
 em `generate_post.py` antes de deixar automático.
+   Testando o workflow de automação.
